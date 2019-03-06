@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--配置注解扫描-->
+    <context:component-scan base-package="com.lzy"/>
+
+    <import resource="classpath:springMVC.xml"></import>
+
+    <context:property-placeholder location="classpath:druid.properties"/>
+
+    <bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${driverClassName}"></property>
+        <property name="url" value="${url}"></property>
+        <property name="username" value="root"></property>
+        <property name="password" value="654321"></property>
+    </bean>
+
+    <!--配置SqlSessionFactoryBean-->
+    <bean name="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="mapperLocations" value="classpath:com/lzy/dao/*.xml"></property>
+        <property name="configLocation" value="classpath:mybatisConfig.xml"></property>
+    </bean>
+
+    <!--配置mapper扫描器-->
+    <bean name="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        <property name="basePackage" value="com.lzy.dao"></property>
+    </bean>
+
+    <!--事务管理-->
+    <bean name="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!--配置事务注解扫描-->
+    <tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+
+</beans>

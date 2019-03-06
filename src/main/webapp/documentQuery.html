@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+<link rel="stylesheet" type="text/css" href="css/bootstrap-responsive.css" />
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+<script type="text/javascript" src="js/jquery2.js"></script>
+<script type="text/javascript" src="js/bootstrap.js"></script>
+<script type="text/javascript" src="js/ckform.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+
+<style type="text/css">
+body {font-size: 20px;
+	padding-bottom: 40px;
+	background-color: #e9e7ef;
+}
+
+.sidebar-nav {
+	padding: 9px 0;
+}
+
+@media ( max-width : 980px) {
+	/* Enable use of floated navbar text */
+	.navbar-text.pull-right {
+		float: none;
+		padding-left: 5px;
+		padding-right: 5px;
+	}
+}
+</style>
+</head>
+<body>
+	<form class="form-inline definewidth m20" action="#" method="get">
+		 <font color="#777777"><strong>文档名称：</strong></font> <input type="text"
+			name="menuname" id="menuname" class="abc input-default"
+			placeholder="请输入文档名" value="">&nbsp;&nbsp;
+		<button id="searchBtn" class="btn btn-primary">查询</button>
+		&nbsp;&nbsp;
+		<button id="addnew"  class="btn btn-primary">
+			<a href="documentAdd.html" style="color: #FFF;">添加文档 </a>
+		</button>
+        <button id="deleteBatch" class="btn btn-primary"> 批量删除</button>
+	</form>
+	<table class="table table-bordered table-hover definewidth m10">
+		<thead>
+
+		</thead>
+        <tbody>
+
+        </tbody>
+	</table>
+</body>
+<script type="text/javascript">
+
+    Date.prototype.format = function(format)
+    {
+        var o = {
+            "M+" : this.getMonth()+1, //month
+            "d+" : this.getDate(),    //day
+            "h+" : this.getHours(),   //hour
+            "m+" : this.getMinutes(), //minute
+            "s+" : this.getSeconds(), //second
+            "q+" : Math.floor((this.getMonth()+3)/3),  //quarter
+            "S" : this.getMilliseconds() //millisecond
+        };
+        if(/(y+)/.test(format)) {
+            format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        }
+        for(var k in o) {
+            if (new RegExp("(" + k + ")").test(format)) {
+                format = format.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+            }
+        }
+        return format;
+    }
+
+    //删除函数
+    function del(id){
+        if(confirm("您确定要删除吗?")){
+            deleteDocument(id);
+            //$("#"+id).remove();
+        }
+    }
+    function batchSelect() {
+        $("#all").click(function () {
+            var flag = this.checked;
+            $("input[name='batchdel']").each(function () {
+                    this.checked = flag;
+            });
+
+        });
+    }
+
+    function DelSelect(){
+        var Checkbox=false;
+        $("input[name='batchdel']").each(function(){
+            if (this.checked==true) {
+                Checkbox=true;
+            }
+        });
+        if (Checkbox){
+            var t=confirm("您确认要删除选中的内容吗？");
+            if (t==true){
+                return true;
+            }else {
+                return false;
+            }
+        }
+        else{
+            alert("请选择您要删除的内容!");
+            return false;
+        }
+    }
+
+    function deleteDocument(ids){
+        $.get("removeDocumentBatch","ids="+ids,function (data) {
+            //alert(data);
+            //var i = parseInt(data);
+            if(data.length>0){
+                for (var i in data){
+                    $("#"+id).remove();
+                }
+                confirm("删除成功！");
+            }else{
+                confirm("删除失败！");
+            }
+        });
+    }
+
+    $("#deleteBatch").click(function () {
+        if(DelSelect()){
+            var ids = [];
+            $("input[name='batchdel']").each(function(){
+                if(this.checked==true){
+                    var id = $(this).val();
+                    ids.push(id);
+                    //alert(id);
+                }
+            });
+            //alert(ids);
+            deleteDocument(ids);
+        }
+    });
+
+    function fillBody(documents) {
+        for (var i = 0; i < documents.length; i++) {
+            var document = documents[i];
+            var tr = $("<tr id ='"+document.id+"'></tr>");
+
+            var checkboxTD = $("<td><input type='checkbox' name='batchdel' value='"+document.id+"'/></td>");
+            tr.append(checkboxTD);
+
+            var nameTD = $("<td>"+document.name+"</td>");
+            var kindTD = $("<td>"+document.kind.bigname+"-"+document.kind.smallname+"</td>");
+            var nicknameTD = $("<td><a href='studentdetail.html'>"+document.userInfo.nickname+"</a></td>");
+            var time = new Date(document.uploaddate).format("yyyy.MM.dd");
+            var timeTD=$("<td>"+time+"</td>");
+
+            var operationTD = $("<td><button onclick='return del("+document.id+")'>删除</button></td>");
+
+            tr.append(nameTD);
+            tr.append(kindTD);
+            tr.append(nicknameTD);
+            tr.append(timeTD);
+            tr.append(operationTD);
+
+            $("tbody").append(tr);
+        }
+
+    }
+
+    function fillHead() {
+        $("thead").html("<tr><th><input type='checkbox' id='all'/>全选</th><th>文档名称</th><th>分类</th><th>上传者</th><th>上传日期</th><th>管理菜单</th></tr>");
+    }
+
+    function fillTable(documents){
+        fillBody(documents);
+        batchSelect();
+    }
+
+    $.get("allDocuments",function(documents){
+        fillHead();
+        fillBody(documents);
+        batchSelect();
+    },"json");
+
+    $("#searchBtn").click(function () {
+        var key = $("#menuname").val();
+        alert(key);
+        $("tbody").empty();
+        $.get("getDocumentsByName","key="+key,function(documents){
+            alert(documents);
+            fillBody(documents);
+            batchSelect();
+        },"json");
+    });
+</script>
+</html>

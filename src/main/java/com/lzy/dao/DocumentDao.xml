@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzy.dao.DocumentDao">
+    <resultMap id="documentPro" type="document">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="uploaddate" column="uploadtime"></result>
+        <association property="kind" column="kindId" javaType="kind" resultMap="kindPro"></association>
+        <association property="userInfo" column="uploaduser" javaType="userInfo" resultMap="userInfoPro"></association>
+    </resultMap>
+
+    <resultMap id="kindPro" type="kind">
+        <id property="id" column="id"></id>
+        <result property="bigname" column="bigname"></result>
+        <result property="smallname" column="smallname"></result>
+    </resultMap>
+
+    <resultMap id="userInfoPro" type="userInfo">
+        <id property="username" column="username"></id>
+        <result property="nickname" column="nickname"></result>
+    </resultMap>
+
+    <sql id="allDocuments">
+        select * from document d,kind k ,userinfo u where d.kindId = k.id and u.username = d.uploaduser
+    </sql>
+
+    <select id="selectAllDocuments" resultMap="documentPro">
+        <include refid="allDocuments" />
+    </select>
+
+    <select id="selectDocumentsByName" parameterType="string" resultMap="documentPro">
+        <include refid="allDocuments" /> and d.name like '%${value}%'
+    </select>
+    
+    <delete id="deleteDocumentBatch" parameterType="integer[]">
+        delete from document where id in 
+        <foreach collection="array" item="arr" index="no" open="(" separator="," close=")">
+            #{arr}
+        </foreach>
+    </delete>
+
+</mapper>
